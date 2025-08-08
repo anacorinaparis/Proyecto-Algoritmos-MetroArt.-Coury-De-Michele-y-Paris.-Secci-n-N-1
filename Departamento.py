@@ -1,6 +1,6 @@
 class Departamento:
     def __init__(self, department_id, display_name):
-        self.department_id = department_id
+        self.department_id = id
         self.display_name = display_name
 
     def show(self):

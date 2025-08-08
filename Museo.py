@@ -113,34 +113,39 @@ class Museo:
                     for obra in obras[-batch_size:]:
                         obra.show_resumen()
 
-                    opcion = input("""\nSeleccione una opción:
-1- Ver más obras
-2- Buscar una obra por ID
-3- Volver al menú principal
----> """)
-                    if opcion == "1":
-                        continue_loading = True
-                        continue
-                    elif opcion == "2":
-                        obra_id = input("\nIngrese el ID de la obra que desea ver en detalle: ")
-                        self.mostrar_detalle_obra(obra_id)
+                    
+                    while True:
+                        opcion = input("""\nSeleccione una opción:
+    1- Ver más obras
+    2- Buscar una obra por ID
+    3- Volver al menú principal
+    ---> """)
                         
-                        while True:
+                        if opcion == "1":
+                            break
+                            
+                        elif opcion == "2":
+                            obra_id = input("\nIngrese el ID de la obra que desea ver en detalle: ")
+                            self.mostrar_detalle_obra(obra_id)
                             respuesta = input("\n¿Desea continuar viendo más obras? (s/n): ").lower()
+                            
                             if respuesta == "n":
                                 self.mostrar_departamentos()
                                 continue_loading = False
                                 break
                             elif respuesta == "s":
-                                continue_loading = True
                                 break
                             else:
-                                print("\nOpción no válida.")
-                    elif opcion == "3":
-                        continue_loading = False
-                        continue
-                    else:
-                        print("\nOpción inválida, continuando con más obras...")
+                                print("\nOpción inválida.")
+                                    
+                        elif opcion == "3":
+                            continue_loading = False
+                            break
+                            
+                        else:
+                            print("\nOpción inválida. Intente de nuevo")
+                            print()
+                            continue
             return obras
         
         else:
@@ -153,7 +158,7 @@ class Museo:
     
         if response.status_code == 200:
             obra_data = response.json()
-            obra = Obra(0,
+            obra = Obra(
                 obra_data.get("title", "Sin título"),
                 obra_data.get("artistDisplayName", "Artista desconocido"),
                 obra_data.get("artistNationality", "Desconocida"),

@@ -283,6 +283,99 @@ class Museo:
                     else:
                         print("\nOpción inválida, continuando con más obras...")
             return obras
+
+    def buscar_obras_por_artista(self):
+        """Menú para buscar obras por artista (similar al de departamentos)"""
+        artista = input("\nIngrese el nombre del artista: ").strip()
+
+        if not artista:
+            print("Nombre de artista inválido")
+            return
+
+        obras = self.obtener_obras_por_artista(artista)
+        if obras is None:
+            return
+        elif obras:
+            print(f"\n--- OBRAS DE {artista.upper()} ---")
+            self.mostrar_obras_por_lotes(obras)
+        else:
+            print(f"No se encontraron obras para el artista '{artista}'")
+
+
+
+    def obtener_obras_por_artista(self, artista):
+        url = f"https://collectionapi.metmuseum.org/public/collection/v1/search?artistOrCulture=true&q={artista}"
+        response = requests.get(url, timeout=10)
+
+        if response.status_code == 200:
+            id_obras = response.json().get("objectIDs", [])
+            obras = []
+            lote = 20
+            cargando = True
+
+            for i, id_obra in enumerate(id_obras, 1):
+                if not cargando:
+                    return None
+                
+                obra_url = f"https://collectionapi.metmuseum.org/public/collection/v1/objects/{id_obra}"
+                obra_response = requests.get(obra_url, timeout=5)
+
+                if obra_response.status_code == 200:
+                    info_obra = obra_response.json()
+                    if artista.lower() in info_obra.get("artistDisplayName", "").lower():
+                        obras.append(Obra(
+                        id_obra,
+                        info_obra.get("title", "Sin título"),
+                        info_obra.get("artistDisplayName", "Artista desconocido"),
+                        info_obra.get("artistNationality", "Desconocida"),
+                        info_obra.get("objectDate", "Fecha desconocida"),
+                        info_obra.get("artistBeginDate", "Fecha desconocida"),
+                        info_obra.get("artistEndDate", "Fecha desconocida"),
+                        info_obra.get("classification", "Desconocido"),
+                        info_obra.get("primaryImage", ""),
+                    ))
+
+
+                if i % lote == 0:
+                    print(f"\n--- Mostrando obras {i-lote+1} a {i} ---")
+                    for obra in obras[-lote:]:
+                        obra.show_resumen()
+
+                    while True:
+                        opcion = input("""\nSeleccione una opción:
+    1- Ver más obras
+    2- Buscar una obra por ID
+    3- Volver al menú principal
+    ---> """)
+                        
+                        if opcion == "1":
+                            break
+                        
+                        elif opcion == "2":
+                            obra_id = input("\nIngrese el ID de la obra que desea ver en detalle: ")
+                            self.mostrar_detalle_obra(obra_id)
+                            respuesta = input("\n¿Desea continuar viendo más obras? (s/n): ").lower()
+
+                            if respuesta == "n":
+                                cargando = False
+                                break
+                            elif respuesta == "s":
+                                break
+                            else:
+                                print("\nOpción no válida.")
+
+                        elif opcion == "3":
+                            cargando = False
+                            break
+                        else:
+                            print("\nOpción inválida. Intente de nuevo.")
+                            print()
+                            continue
+            return obras
+        
+        else:
+            print(f"\nError al obtener obras. Código: {response.status_code}")
+            return []
         
         else:
             print(f"\nError al obtener obras. Código: {response.status_code}")

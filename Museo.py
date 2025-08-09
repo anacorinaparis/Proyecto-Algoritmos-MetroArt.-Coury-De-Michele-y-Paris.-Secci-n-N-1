@@ -29,7 +29,7 @@ class Museo:
                 self.mostrar_nacionalidades()
                 print()
             elif menu == "3":
-                None
+                self.buscar_obras_por_artista()
             elif menu == "4":
                 print()
                 print("¡Gracias por visitar el Museo MetroArt!")

@@ -293,7 +293,6 @@ class Museo:
 
 
     def buscar_obras_por_artista(self):
-        """Menú para buscar obras por artista (similar al de departamentos)"""
         artista = input("\nIngrese el nombre del artista: ").strip()
 
         if not artista:
@@ -316,10 +315,13 @@ class Museo:
         response = requests.get(url, timeout=10)
 
         if response.status_code == 200:
-            id_obras = response.json().get("objectIDs", [])
+            data = response.json()
+            id_obras = data.get("objectIDs", []) or []
             obras = []
             lote = 20
             cargando = True
+            if not id_obras: 
+                return []
 
             for i, id_obra in enumerate(id_obras, 1):
                 if not cargando:
@@ -330,7 +332,8 @@ class Museo:
 
                 if obra_response.status_code == 200:
                     info_obra = obra_response.json()
-                    if artista.lower() in info_obra.get("artistDisplayName", "").lower():
+                    artist_name = info_obra.get("artistDisplayName", "").lower()
+                    if artist_name and artista.lower() in artist_name:
                         obras.append(Obra(
                         id_obra,
                         info_obra.get("title", "Sin título"),

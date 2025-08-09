@@ -171,7 +171,7 @@ class Museo:
             imagen_url = obra_data.get("primaryImage", "") or obra_data.get("primaryImageSmall", "")
             if imagen_url:
                 print(f"\nImagen disponible en: {imagen_url}")
-                ver = input("\nDesea ver la imagen ahora? (s/n)").strip().lower()
+                ver = input("\n¿Desea ver la imagen ahora? (s/n): ").strip().lower()
                 if ver == "n":
                     print("\nNo se mostrara imagen")
                     return

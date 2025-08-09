@@ -156,7 +156,7 @@ class Museo:
         if response.status_code == 200:
             obra_data = response.json()
             obra = Obra(
-                obra_id
+                obra_id,
                 obra_data.get("title", "Sin título"),
                 obra_data.get("artistDisplayName", "Artista desconocido"),
                 obra_data.get("artistNationality", "Desconocida"),

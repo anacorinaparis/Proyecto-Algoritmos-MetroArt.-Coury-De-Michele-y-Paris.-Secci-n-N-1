@@ -3,6 +3,7 @@ import time
 from Departamento import Departamento
 from Obra import Obra
 import pandas as pandas
+from PIL import Image
 
 class Museo:
     def __init__(self):
@@ -170,11 +171,27 @@ class Museo:
             imagen_url = obra_data.get("primaryImage", "") or obra_data.get("primaryImageSmall", "")
             if imagen_url:
                 print(f"\nImagen disponible en: {imagen_url}")
+                ver = input("\nDesea ver la imagen ahora? (s/n)").strip().lower()
+                if ver == "n":
+                    print("\nNo se mostrara imagen")
+                    return
+                ruta = self.mostrar_imagen_desde_url(imagen_url, f"obra_{obra_id}")
+                if ruta:
+                    if ruta.lower().endswith(".svg"):
+                        print(f"\nLa imagen es SVG y Pillow no la puede abrir: {ruta}")
+                        
+                        try:
+                            img = Image.open(ruta)
+                            img.show()
+                        
+                        except Exception as e:
+                            print(f"\nNo se pudo abrir la imagen: {e}")
             else:
                 print("\nNo hay imagen disponible para esta obra.")
         else:
             print(f"\nError al obtener detalles de la obra. Código: {response.status_code}")
 
+    
     def mostrar_nacionalidades(self):
         nacionalidades_archivo = pandas.read_csv("CH_Nationality_List_20171130_v1.csv")
         self.nacionalidades = []
@@ -387,3 +404,36 @@ class Museo:
         else:
             print(f"\nError al obtener obras. Código: {response.status_code}")
             return []
+
+
+    def mostrar_imagen_desde_url(self, url, nombre_archivo):
+            try:
+                r = requests.get(url, stream = True, timeout = 10)
+                r.raise_for_status() #esto lo podemmos usar? 
+                
+                content_type = r.headers.get("Content-Type", "")
+                extension = ".png"
+                if "image/png" in content_type:
+                    extension = ".png"
+                elif "image/jpeg" in content_type or "image/jpg" in content_type:
+                    extension = ".jpg"
+                elif "image/svg+xml" in content_type:
+                    extension = ".svg"
+
+                nombre_archivo_f = f"{nombre_archivo}{extension}"
+
+                with open(nombre_archivo_f, "wb") as f:
+                    for chunk in r.iter_content(chunk_size = 8000):
+                        if chunk:
+                            f.write(chunk)
+                
+                print(f"Imagen guardada como '{nombre_archivo_f}'")
+                return nombre_archivo_f
+            
+            except requests.exceptions.RequestException as e: 
+                print(f"Error al descargar la imagen: {e}")
+
+            except OSError as e:
+                print(f"Error al escribir el archivo: {e}")
+            
+            return None

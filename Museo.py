@@ -384,7 +384,3 @@ class Museo:
         else:
             print(f"\nError al obtener obras. Código: {response.status_code}")
             return []
-        
-        else:
-            print(f"\nError al obtener obras. Código: {response.status_code}")
-            return []

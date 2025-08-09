@@ -28,17 +28,15 @@ class Museo:
                 print()
                 self.mostrar_nacionalidades()
                 print()
-                self.obtener_obras_por_nacionalidad()
-                print()
             elif menu == "3":
-                None
+                self.buscar_obras_por_artista()
             elif menu == "4":
                 print()
                 print("¡Gracias por visitar el Museo MetroArt!")
                 break
             else:
                 print()
-                print("Opción invalida, intentelo de nuevo.")
+                print("Opción invalida, inténtelo de nuevo.")
 
     def cargar_departamentos(self):
         url = "https://collectionapi.metmuseum.org/public/collection/v1/departments"
@@ -63,14 +61,14 @@ class Museo:
                 break
 
             if not id_depto.isdigit() or not any(depto.department_id == int(id_depto) for depto in self.departamentos):
-                print("ID invalido. Ingrese uno. de los IDs mostrados")
+                print("ID inválido. Ingrese uno de los IDs mostrados")
                 continue
 
             obras = self.obtener_obras_por_departamento(id_depto)
             if obras is None:
                 return
             elif obras:
-                print(f"\n--- Obras del Departamento {id_depto} ---")
+                print(f"\n--- ORRAS DEL DEPARTAMENTO {id_depto} ---")
                 for obra in obras:
                     obra.show_resumen()
             else:
@@ -81,36 +79,35 @@ class Museo:
         response = requests.get(url, timeout=10)
 
         if response.status_code == 200:
-            object_ids = response.json().get("objectIDs", [])
-            
+            id_obras = response.json().get("objectIDs", [])
             obras = []
-            batch_size = 20
-            continue_loading = True
+            lote = 20
+            cargando = True
 
-            for i, obj_id in enumerate(object_ids, 1):
-                if not continue_loading:
+            for i, id_obra in enumerate(id_obras, 1):
+                if not cargando:
                     return None
                     
-                obra_url = f"https://collectionapi.metmuseum.org/public/collection/v1/objects/{obj_id}"
+                obra_url = f"https://collectionapi.metmuseum.org/public/collection/v1/objects/{id_obra}"
                 obra_response = requests.get(obra_url, timeout=5)
 
                 if obra_response.status_code == 200:
-                    obra_data = obra_response.json()
+                    info_obra = obra_response.json()
                     obras.append(Obra(
-                        obj_id,
-                        obra_data.get("title", "Sin título"),
-                        obra_data.get("artistDisplayName", "Artista desconocido"),
-                        obra_data.get("artistNationality", "Desconocida"),
-                        obra_data.get("objectDate", "Fecha desconocida"),
-                        obra_data.get("artistBeginDate", "Fecha desconocida"),
-                        obra_data.get("artistEndDate", "Fecha desconocida"),
-                        obra_data.get("classification", "Desconocido"),
-                        obra_data.get("primaryImage", ""),
+                        id_obra,
+                        info_obra.get("title", "Sin título"),
+                        info_obra.get("artistDisplayName", "Artista desconocido"),
+                        info_obra.get("artistNationality", "Desconocida"),
+                        info_obra.get("objectDate", "Fecha desconocida"),
+                        info_obra.get("artistBeginDate", "Fecha desconocida"),
+                        info_obra.get("artistEndDate", "Fecha desconocida"),
+                        info_obra.get("classification", "Desconocido"),
+                        info_obra.get("primaryImage", ""),
                     ))
                 
-                if i % batch_size == 0:
-                    print(f"\n--- Mostrando obras {i-batch_size+1} a {i} ---")
-                    for obra in obras[-batch_size:]:
+                if i % lote == 0:
+                    print(f"\n--- Mostrando obras {i-lote+1} a {i} ---")
+                    for obra in obras[-lote:]:
                         obra.show_resumen()
 
                     
@@ -131,7 +128,7 @@ class Museo:
                             
                             if respuesta == "n":
                                 self.mostrar_departamentos()
-                                continue_loading = False
+                                cargando = False
                                 break
                             elif respuesta == "s":
                                 break
@@ -139,7 +136,7 @@ class Museo:
                                 print("\nOpción inválida.")
                                     
                         elif opcion == "3":
-                            continue_loading = False
+                            cargando = False
                             break
                             
                         else:
@@ -159,6 +156,7 @@ class Museo:
         if response.status_code == 200:
             obra_data = response.json()
             obra = Obra(
+                obra_id,
                 obra_data.get("title", "Sin título"),
                 obra_data.get("artistDisplayName", "Artista desconocido"),
                 obra_data.get("artistNationality", "Desconocida"),
@@ -194,7 +192,7 @@ class Museo:
             seleccion_nacionalidad = input("\nIngrese el núsmero de la nacionalidad de la cual desea ver obras, o '0' para volver al menú principal: ")
             nacionalidad_escogida = None
 
-            if int(seleccion_nacionalidad) == 0:
+            if seleccion_nacionalidad == "0":
                 break
             
             if not seleccion_nacionalidad.isnumeric():
@@ -213,8 +211,6 @@ class Museo:
             if obras_nac is None:
                 return
             elif obras_nac:
-                print(f"\nLas obras de la nacionalidad '{nacionalidad_escogida}' son: ")
-                print()
                 for obra in obras_nac:
                     obra.show_resumen()
             else:
@@ -226,66 +222,166 @@ class Museo:
         response = requests.get(url, timeout=15)
 
         if response.status_code == 200:
-            object_ids = response.json().get("objectIDs", [])
+            id_obras = response.json().get("objectIDs", [])
             
             obras = []
-            batch_size = 20
-            continue_loading = True
+            lote = 20
+            cargando = True
 
-            for i, obj_id in enumerate(object_ids, 1):
-                if not continue_loading:
+            for i, id_obra in enumerate(id_obras, 1):
+                if not cargando:
                     return None
                     
-                obra_url = f"https://collectionapi.metmuseum.org/public/collection/v1/objects/{obj_id}"
+                obra_url = f"https://collectionapi.metmuseum.org/public/collection/v1/objects/{id_obra}"
                 obra_response = requests.get(obra_url, timeout=5)
 
                 if obra_response.status_code == 200:
-                    obra_data = obra_response.json()
+                    info_obra = obra_response.json()
                     obras.append(Obra(
-                        obj_id,
-                        obra_data.get("title", "Sin título"),
-                        obra_data.get("artistDisplayName", "Artista desconocido"),
-                        obra_data.get("artistNationality", "Desconocida"),
-                        obra_data.get("objectDate", "Fecha desconocida"),
-                        obra_data.get("artistBeginDate", "Fecha desconocida"),
-                        obra_data.get("artistEndDate", "Fecha desconocida"),
-                        obra_data.get("classification", "Desconocido"),
-                        obra_data.get("primaryImage", ""),
+                        id_obra,
+                        info_obra.get("title", "Sin título"),
+                        info_obra.get("artistDisplayName", "Artista desconocido"),
+                        info_obra.get("artistNationality", "Desconocida"),
+                        info_obra.get("objectDate", "Fecha desconocida"),
+                        info_obra.get("artistBeginDate", "Fecha desconocida"),
+                        info_obra.get("artistEndDate", "Fecha desconocida"),
+                        info_obra.get("classification", "Desconocido"),
+                        info_obra.get("primaryImage", ""),
                     ))
                 
-                if i % batch_size == 0:
-                    print(f"\n--- Mostrando obras {i-batch_size+1} a {i} ---")
-                    for obra in obras[-batch_size:]:
+                if i % lote == 0:
+                    print(f"\n--- Mostrando obras {i-lote+1} a {i} ---")
+                    for obra in obras[-lote:]:
                         obra.show_resumen()
 
-                    opcion = input("""\nSeleccione una opción:
-1- Ver más obras
-2- Buscar una obra por ID
-3- Volver al menú principal
----> """)
-                    if opcion == "1":
-                        continue_loading = True
-                        continue
-                    elif opcion == "2":
-                        obra_id = input("\nIngrese el ID de la obra que desea ver en detalle: ")
-                        self.mostrar_detalle_obra(obra_id)
+                    while True:
+                        opcion = input("""\nSeleccione una opción:
+    1- Ver más obras
+    2- Buscar una obra por ID
+    3- Volver al menú principal
+    ---> """)
                         
-                        while True:
+                        if opcion == "1":
+                            break
+                            
+                        elif opcion == "2":
+                            obra_id = input("\nIngrese el ID de la obra que desea ver en detalle: ")
+                            self.mostrar_detalle_obra(obra_id)
                             respuesta = input("\n¿Desea continuar viendo más obras? (s/n): ").lower()
+                            
                             if respuesta == "n":
-                                self.mostrar_nacionalidades()
-                                continue_loading = False
+                                cargando = False
                                 break
                             elif respuesta == "s":
-                                continue_loading = True
+                                break
+                            else:
+                                print("\nOpción inválida.")
+                                    
+                        elif opcion == "3":
+                            cargando = False
+                            break
+                            
+                        else:
+                            print("\nOpción inválida. Intente de nuevo")
+                            print()
+                            continue
+            return obras
+        
+        else:
+            print(f"\nError al obtener obras. Código: {response.status_code}")
+            return []
+
+
+    def buscar_obras_por_artista(self):
+        artista = input("\nIngrese el nombre del artista: ").strip()
+
+        if not artista:
+            print("Nombre de artista inválido")
+            return
+
+        obras = self.obtener_obras_por_artista(artista)
+        if obras is None:
+            return
+        elif obras:
+            print(f"\n--- OBRAS DE {artista.upper()} ---")
+            self.mostrar_obras_por_lotes(obras)
+        else:
+            print(f"No se encontraron obras para el artista '{artista}'")
+
+
+
+    def obtener_obras_por_artista(self, artista):
+        url = f"https://collectionapi.metmuseum.org/public/collection/v1/search?artistOrCulture=true&q={artista}"
+        response = requests.get(url, timeout=10)
+
+        if response.status_code == 200:
+            data = response.json()
+            id_obras = data.get("objectIDs", []) or []
+            obras = []
+            lote = 20
+            cargando = True
+            if not id_obras: 
+                return []
+
+            for i, id_obra in enumerate(id_obras, 1):
+                if not cargando:
+                    return None
+                
+                obra_url = f"https://collectionapi.metmuseum.org/public/collection/v1/objects/{id_obra}"
+                obra_response = requests.get(obra_url, timeout=5)
+
+                if obra_response.status_code == 200:
+                    info_obra = obra_response.json()
+                    artist_name = info_obra.get("artistDisplayName", "").lower()
+                    if artist_name and artista.lower() in artist_name:
+                        obras.append(Obra(
+                        id_obra,
+                        info_obra.get("title", "Sin título"),
+                        info_obra.get("artistDisplayName", "Artista desconocido"),
+                        info_obra.get("artistNationality", "Desconocida"),
+                        info_obra.get("objectDate", "Fecha desconocida"),
+                        info_obra.get("artistBeginDate", "Fecha desconocida"),
+                        info_obra.get("artistEndDate", "Fecha desconocida"),
+                        info_obra.get("classification", "Desconocido"),
+                        info_obra.get("primaryImage", ""),
+                    ))
+
+
+                if i % lote == 0:
+                    print(f"\n--- Mostrando obras {i-lote+1} a {i} ---")
+                    for obra in obras[-lote:]:
+                        obra.show_resumen()
+
+                    while True:
+                        opcion = input("""\nSeleccione una opción:
+    1- Ver más obras
+    2- Buscar una obra por ID
+    3- Volver al menú principal
+    ---> """)
+                        
+                        if opcion == "1":
+                            break
+                        
+                        elif opcion == "2":
+                            obra_id = input("\nIngrese el ID de la obra que desea ver en detalle: ")
+                            self.mostrar_detalle_obra(obra_id)
+                            respuesta = input("\n¿Desea continuar viendo más obras? (s/n): ").lower()
+
+                            if respuesta == "n":
+                                cargando = False
+                                break
+                            elif respuesta == "s":
                                 break
                             else:
                                 print("\nOpción no válida.")
-                    elif opcion == "3":
-                        continue_loading = False
-                        continue
-                    else:
-                        print("\nOpción inválida, continuando con más obras...")
+
+                        elif opcion == "3":
+                            cargando = False
+                            break
+                        else:
+                            print("\nOpción inválida. Intente de nuevo.")
+                            print()
+                            continue
             return obras
         
         else:
